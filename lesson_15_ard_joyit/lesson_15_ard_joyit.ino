@@ -22,10 +22,11 @@ int d1 = 12;
 // GLOBAL VARIABLES
 // ----------------------
 
-long n = 1230;  // Example number to display
-int daysYear = 365;
-int daysLeft = 45;
-int secondsInDay = 86400;
+// ----------- Christmas countdown setup (no RTC) -----------
+unsigned long secondsPerDay = 86400;  // 24 * 60 * 60
+unsigned long millisAtStart;          // when Arduino was powered on
+int daysLeftStart = 44;               // set manually: days left when started (example: Nov 11 → 44 days to Dec 25)
+
 
 // ----------------------
 // SETUP FUNCTION
@@ -46,19 +47,39 @@ void setup() {
   pinMode(f, OUTPUT);
   pinMode(g, OUTPUT);
   pinMode(dp, OUTPUT);
+
+    // (your existing pinMode setup here)
+  millisAtStart = millis(); // capture when program starts
 }
+
 
 // ----------------------
 // MAIN LOOP
 // ----------------------
 void loop() {
-  // Display each digit with its corresponding number
-  // For testing: digit 1 shows "1", digit 2 shows "2", etc.
-  Display(1, 0);
-  Display(2, 2);
-  Display(3, 3);
-  Display(4, 4);
+  unsigned long elapsedSeconds = millis() / 1000;
+  unsigned long secondsToday = elapsedSeconds % secondsPerDay;
+  int daysPassed = elapsedSeconds / secondsPerDay;
+
+  // Compute days left and auto-reset yearly
+  int daysLeft = daysLeftStart - (daysPassed % 365);
+  if (daysLeft < 0) daysLeft = 0;
+
+  // Approximate fraction of current day (0–9)
+  int lastDigit = map(secondsToday, 0, secondsPerDay, 0, 9);
+
+  // Break daysLeft into digits
+  int d1 = (daysLeft >= 100) ? (daysLeft / 100) % 10 : 0;
+  int d2 = (daysLeft / 10) % 10;
+  int d3 = daysLeft % 10;
+
+  // Display digits
+  Display(1, d1);
+  Display(2, d2);
+  Display(3, d3);
+  Display(4, lastDigit);
 }
+
 
 // ----------------------
 // DIGIT SELECTION FUNCTION
